@@ -1,8 +1,6 @@
-import http from 'http';
-import fs from 'fs';
-import sqlite from 'node:sqlite';
+const sqlite = require('node:sqlite');
+const express = require('express');
 
-const host = '0.0.0.0';
 const port = 8080;
 
 const database = new sqlite.DatabaseSync('plicedata');
@@ -10,7 +8,8 @@ const database = new sqlite.DatabaseSync('plicedata');
 const dbInitialized = database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='character';").all();
 
 if (!dbInitialized) {
-    database.exec("CREATE TABLE character(x INTEGER CHECK (x BETWEEN 0 AND 40), y INTEGER CHECK (y BETWEEN 0 AND 25), value TEXT CHECK (length(value) = 1), PRIMARY KEY (x, y) );");
+    database.exec("CREATE TABLE character(x INTEGER CHECK (x BETWEEN 0 AND 40) NOT NULL, y INTEGER CHECK (y BETWEEN 0 AND 25) NOT NULL, value TEXT CHECK (length(value) = 1) NOT NULL, PRIMARY KEY (x, y) );");
+    database.exec("CREATE TABLE log(id INTEGER PRIMARY KEY AUTOINCREMENT, x INTEGER NOT NULL, y INTEGER NOT NULL, value TEXT CHECK (LENGTH(value) = 1) NOT NULL, date DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, student TEXT CHECK (length(student) = 8) NOT NULL, FOREIGN KEY (x) REFERENCES character(x), FOREIGN KEY (y) REFERENCES character(y));");
     const createChar = database.prepare("INSERT INTO character(x, y, value) VALUES (?, ?, ?)");
 
     for (let x = 0; x < 40; x++) {
@@ -20,20 +19,16 @@ if (!dbInitialized) {
     }
 }
 
-const page = fs.readFileSync('index.html', 'utf-8');
+const app = express();
 
-const server = http.createServer((req, res) => {
-    if (req.method == 'GET') {
-        res.setHeader('Content-Type', 'text/html');
-        res.writeHead(200);
-        res.end(page);
-    }
+app.engine('.html', require('ejs').__express);
 
-    if (req.method == 'POST') {
+app.use(express.static('public'));
 
-    }
+app.get('/', (req, res) => {
+    res.render('index.html', {});
 });
 
-server.listen(port, host, () => {
-    console.log(`Server is running on http://${host}:${port}`);
-});
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+})
