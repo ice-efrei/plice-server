@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Plice</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
 </head>
 <body>
-    hello world!
+    <div id="screen">
+        <% for (let i = 0; i < 25; i++) { %>
+            <% for (let j = 0; j < 40; j++) { %>
+                <span><%= screen[i][j] %></span>
+            <% } %>
+        <% } %>
+    </div>
 </body>
 </html>

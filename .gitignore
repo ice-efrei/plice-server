@@ -1,3 +1,4 @@
 .vscode/
 plicedata
 node_modules/
+.env
