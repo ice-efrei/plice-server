@@ -96,6 +96,7 @@ app.post('/', (req, res) => {
 
     if (!checkVals(x, y, value)) {
         res.json({ status: "err", error: "oh nooo, i totally did not check that..." });
+        return;
     }
 
     let last = getDate.get(student);

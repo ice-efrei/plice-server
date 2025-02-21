@@ -8,12 +8,14 @@
     <script src="script.js"></script>
 </head>
 <body>
-    <div id="screen">
-        <% for (let i = 0; i < 25; i++) { %>
-            <% for (let j = 0; j < 40; j++) { %>
-                <span><%= screen[i][j] %></span>
+    <div id="center">
+        <div id="screen">
+            <% for (let i = 0; i < 25; i++) { %>
+                <% for (let j = 0; j < 40; j++) { %>
+                    <div onclick="zoomIn(this);" x="<%= j %>" y="<%= i %>"><%= screen[i][j] %></div>
+                <% } %>
             <% } %>
-        <% } %>
+        </div>
     </div>
 </body>
 </html>
