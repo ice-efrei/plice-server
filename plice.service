@@ -1,5 +1,5 @@
 [Unit]
-Description=Plice's Server
+Description=Plice\'s Server
 
 [Service]
 Type=simple

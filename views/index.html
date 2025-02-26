@@ -9,12 +9,17 @@
 </head>
 <body>
     <div id="center">
-        <div id="screen">
-            <% for (let i = 0; i < 25; i++) { %>
-                <% for (let j = 0; j < 40; j++) { %>
-                    <div onclick="zoomIn(this);" x="<%= j %>" y="<%= i %>"><%= screen[i][j] %></div>
+        <div id="screen-container">
+            <div id="screen">
+                <% for (let i = 0; i < 25; i++) { %>
+                    <% for (let j = 0; j < 40; j++) { %>
+                        <div class="case" x="<%= j %>" y="<%= i %>"><%= screen[i][j] %></div>
+                    <% } %>
                 <% } %>
-            <% } %>
+            </div>
+        </div>
+        <div id="choices-container">
+            <div id="choices"></div>
         </div>
     </div>
 </body>

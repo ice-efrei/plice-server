@@ -6,7 +6,7 @@ const express = require('express');
 dotenv.config();
 
 const port = 8080;
-const possible_characters = "azertyuiopqsdfghjklmwxcvbnAZRTYUIOPQSDFGHJKLMWXCVBN1234567890";
+const possible_characters = "azertyuiopqsdfghjklmwxcvbnAZRTYUIOPQSDFGHJKLMWXCVBN1234567890,.';-:?#!\"$%&[]()<>@+=/\\{} ";
 
 let screen = Array.from({ length: 25 }, () => Array(40).fill(0));
 
