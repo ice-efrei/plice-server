@@ -1,17 +1,29 @@
 const dotenv = require('dotenv');
 const sqlite = require('node:sqlite');
 const express = require('express');
-// const jwt = require('jsonwebtoken');
+const { WebSocketServer } = require('ws');
+const { createServer } = require('http');
 
 dotenv.config();
 
 const port = 8080;
 const possible_characters = "azertyuiopqsdfghjklmwxcvbnAZRTYUIOPQSDFGHJKLMWXCVBN1234567890,.';-:?#!\"$%&[]()<>@+=/\\{} ";
 
+// In-memory screen, as it is fairely small
 let screen = Array.from({ length: 25 }, () => Array(40).fill(0));
+
+const getScreenString = () => {
+    let result = "";
+    screen.forEach(line => {
+        result += line.join("") + "\n";
+    });
+
+    return result;
+}
 
 const database = new sqlite.DatabaseSync('plicedata');
 
+// Create and setup the DB if inexistant
 const isDBInitialized = database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='character';").all();
 
 if (isDBInitialized.length == 0) {
@@ -26,6 +38,8 @@ if (isDBInitialized.length == 0) {
             createChar.run(x, y, " ");
         }
     }
+
+    console.log("DB created!");
 }
 
 // Loads the characters from the database into memory
@@ -34,12 +48,50 @@ screenChars.forEach(c => {
     screen[c.y][c.x] = c.value;
 });
 
+// Fast and secured database statments 
 const log = database.prepare("INSERT INTO log(x, y, value, student) VALUES (?, ?, ?, ?);");
 const setCharacter = database.prepare("UPDATE character SET value=? WHERE x=? AND y=?;");
 const updateDate = database.prepare("UPDATE student SET last=? WHERE id=?");
 const createStudent = database.prepare("INSERT INTO student(id) VALUES (?);");
 
+const checkVals = (x, y, val) => {
+    if (0 > x || 40 < x)
+        return false;
+
+    if (0 > y || 25 < y)
+        return false;
+
+    if (val.length != 1)
+        return false;
+
+    if (!(possible_characters.includes(val))) {
+        return false;
+    }
+
+    return true;
+}
+
+const change = (x, y, val, student) => {
+    const now = Date.now();
+    updateDate.run(now, student);
+    setCharacter.run(val, x, y);
+    log.run(x, y, val, student);
+    screen[y][x] = val;
+
+    const n = a => {
+        return ("00" + a).slice(-2);
+    }
+
+    wss.clients.forEach(client => {
+        // XXYYV ex 0423a for 'a' at x=4 and y=23
+        client.send(`${n(x)}${n(y)}${n(val)}`);
+    });
+}
+
+// Initializes web server, simple websocket server for the screen and socket.io server for all users
 const app = express();
+const server = createServer('app');
+const wss = new WebSocketServer({ port: 8081 });
 
 app.engine('.html', require('ejs').__express);
 
@@ -52,31 +104,6 @@ app.get('/', (_, res) => {
 });
 
 app.post('/', (req, res) => {
-    const checkVals = (x, y, val) => {
-        if (0 > x || 40 < x)
-            return false;
-    
-        if (0 > y || 25 < y)
-            return false;
-
-        if (val.length != 1)
-            return false;
-    
-        if (!(possible_characters.includes(val))) {
-            return false;
-        }
-
-        return true;
-    }
-
-    const change = (x, y, val, student) => {
-        const now = Date.now();
-        updateDate.run(now, student);
-        setCharacter.run(val, x, y);
-        log.run(x, y, val, student);
-        screen[y][x] = val;
-    }
-
     const now = Date.now();
 
     const getDate = database.prepare("SELECT last FROM student WHERE id=?");
@@ -124,6 +151,18 @@ app.all('*', (_, res) => {
     res.redirect('/');
 });
 
-app.listen(port, () => {
+wss.on('connection', socket => {
+    // Send the map for any incoming message
+    //! pretty DDoS-able, include minimal check (IP, secret... ?)
+    console.log("Someone connected to broadcast");
+
+    socket.send(getScreenString());
+
+    socket.on('message', _ => {
+        socket.send(getScreenString());
+    });
+});
+
+server.listen(port, () => {
     console.log(`Server listening on port ${port}`);
-})
+});
