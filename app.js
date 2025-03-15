@@ -91,7 +91,7 @@ const change = (x, y, val, student) => {
 // Initializes web server, simple websocket server for the screen and socket.io server for all users
 const app = express();
 const server = createServer('app');
-const wss = new WebSocketServer({ port: 8081 });
+const wss = new WebSocketServer(server);
 
 app.engine('.html', require('ejs').__express);
 
