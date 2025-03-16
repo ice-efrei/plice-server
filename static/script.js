@@ -9,7 +9,7 @@ const fillChoices = () => {
         parent.appendChild(child);
     });
 
-}
+};
 
 let highlightedElement = null;
 
@@ -28,7 +28,7 @@ const zoomIn = e => {
         e.target.setAttribute("highlighted", "");
         highlightedElement = e.target;
     }
-}
+};
 
 window.onload = _ => {
     document.body.onkeydown = e => {
@@ -44,4 +44,57 @@ window.onload = _ => {
     document.body.onclick = zoomIn;
 
     fillChoices();
+
+    const ws = new WebSocket(`ws://${window.location.host}/`);
+
+    ws.onmessage = e => {
+        changeLetter(e.data);
+    }
+};
+
+const changeLetter = text => {
+    type = text.slice(0, 1);
+    
+    if (type == "0") {
+        resetScreen(text.slice(1));
+    } else if (type == "1") {
+        let x = parseInt(text.slice(1, 3));
+        let y = parseInt(text.slice(3, 5));
+        let val = text.slice(5, 6);
+    
+        const el = document.querySelector(`.case[x='${x}'][y='${y}']`);
+        el.innerText = val;
+    }
+    
 }
+
+const resetScreen = s => {
+
+}
+
+const ok = () => {
+    console.log("ok");
+};
+
+const err = error => {
+    console.log(error);
+};
+
+const postLetter = (x, y, value) => {
+    
+    fetch("/", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ x, y, value, student: "20231234" })
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.status == "ok") {
+            ok();
+        } else {
+            err(result.error);
+        }
+    });
+};

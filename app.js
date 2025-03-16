@@ -83,15 +83,15 @@ const change = (x, y, val, student) => {
     }
 
     wss.clients.forEach(client => {
-        // XXYYV ex 0423a for 'a' at x=4 and y=23
-        client.send(`${n(x)}${n(y)}${n(val)}`);
+        // TXXYYV ex 10423a for 'a' at x=4 and y=23 (with type 1 = change letter)
+        client.send(`1${n(x)}${n(y)}${val}`);
     });
 }
 
 // Initializes web server, simple websocket server for the screen and socket.io server for all users
 const app = express();
-const server = createServer('app');
-const wss = new WebSocketServer(server);
+const server = createServer(app);
+const wss = new WebSocketServer({server: server});
 
 app.engine('.html', require('ejs').__express);
 
@@ -115,9 +115,15 @@ app.post('/', (req, res) => {
     let value = placing.value;
     let student = placing.student;
 
-    if (x == undefined || y == undefined || !value || !student) {
+    
+    if (x == undefined || y == undefined || value == undefined || student == undefined) {
         
         res.json({ status: "err", error: "bro i need all fields" });
+        return;
+    }
+    
+    if (typeof x != "number" || typeof y != "number" || typeof value != "string" || typeof student != "string") {
+        res.json({status: "err", error: "if you're really trying to reverse-engineer my API please at least send the right types"});
         return;
     }
 
@@ -137,10 +143,10 @@ app.post('/', (req, res) => {
 
     last = new Date(last).getTime();
 
-    if (now - last < 300000) {
-        res.json({ status: "err", error: `too soon, try again in ${300 - Math.round((now - last) / 1000)} seconds` });
-        return;
-    }
+    // if (now - last < 300000) {
+    //     res.json({ status: "err", error: `too soon, try again in ${300 - Math.round((now - last) / 1000)} seconds` });
+    //     return;
+    // }
 
     change(x, y, value, student);
 
@@ -156,10 +162,8 @@ wss.on('connection', socket => {
     //! pretty DDoS-able, include minimal check (IP, secret... ?)
     console.log("Someone connected to broadcast");
 
-    socket.send(getScreenString());
-
     socket.on('message', _ => {
-        socket.send(getScreenString());
+        socket.send("0" + getScreenString());
     });
 });
 
