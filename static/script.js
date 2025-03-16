@@ -31,6 +31,12 @@ const zoomIn = e => {
 };
 
 window.onload = _ => {
+    console.log("%cPour tous les skids et les wannabe hackers venus dans la console", "color: red; font-size: 20px; font-weight: bolder;");
+    console.log("%cSi tu penses pouvoir pirater ce service, stp non en fait c'est juste un projet étudiant et tout casser c'est pas drôle", "font-weight: bolder");
+    console.log("%cSi tu penses pouvoir DDoS ce service, c'est effectivement possible mais vraiment lourd", "font-weight: bolder;");
+    console.log("%cSi tu penses être très intelligent et reverse-engineer le script, ça ne sert à rien tout est open-source sur notre Github", "font-weight: bolder;");
+    console.log("%cSi tu as tout lu et que tu souhaite finalement être sympa et ajouter des features, je t'invite à rejoindre l'association %cICE %c(c'est 5€ et on est marrants)", "font-weight: bolder;", "font-weight: bolder; color:  #3498db;", "font-weight: bolder;");
+    
     document.body.onkeydown = e => {
         if (highlightedElement != null) {
             if (!possible_characters.includes(e.key))
