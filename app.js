@@ -6,16 +6,19 @@ const { createServer } = require('http');
 
 dotenv.config();
 
+const MINITEL_X = 40;
+const MINITEL_Y = 25;
+
 const port = 8080;
 const possible_characters = "azertyuiopqsdfghjklmwxcvbnAZRTYUIOPQSDFGHJKLMWXCVBN1234567890,.';-:?#!\"$%&[]()<>@+=/\\{} ";
 
 // In-memory screen, as it is fairely small
-let screen = Array.from({ length: 25 }, () => Array(40).fill(0));
+let screen = Array.from({ length: MINITEL_Y }, () => Array(40).fill(0));
 
 const getScreenString = () => {
     let result = "";
     screen.forEach(line => {
-        result += line.join("") + "\n";
+        result += line.join("") + "";
     });
 
     return result;
@@ -28,13 +31,13 @@ const isDBInitialized = database.prepare("SELECT name FROM sqlite_master WHERE t
 
 if (isDBInitialized.length == 0) {
     console.log("Creating DB...");
-    let a = database.exec("CREATE TABLE character(x INTEGER CHECK (x BETWEEN 0 AND 40) NOT NULL, y INTEGER CHECK (y BETWEEN 0 AND 25) NOT NULL, value TEXT CHECK (length(value) = 1) NOT NULL, PRIMARY KEY (x, y) );");
+    let a = database.exec(`CREATE TABLE character(x INTEGER CHECK (x BETWEEN 0 AND ${MINITEL_X - 1}) NOT NULL, y INTEGER CHECK (y BETWEEN 0 AND ${MINITEL_Y - 1}) NOT NULL, value TEXT CHECK (length(value) = 1) NOT NULL, PRIMARY KEY (x, y) );`);
     let b = database.exec("CREATE TABLE student(id TEXT CHECK (length(id) = 8) PRIMARY KEY, last DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL);");
     let c = database.exec("CREATE TABLE log(id INTEGER PRIMARY KEY AUTOINCREMENT, x INTEGER NOT NULL, y INTEGER NOT NULL, value TEXT CHECK (LENGTH(value) = 1) NOT NULL, date DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, student TEXT CHECK (length(student) = 8) NOT NULL, FOREIGN KEY (student) REFERENCES student(id), FOREIGN KEY (x, y) REFERENCES character(x, y));");
     const createChar = database.prepare("INSERT INTO character(x, y, value) VALUES (?, ?, ?)");
     
-    for (let x = 0; x < 40; x++) {
-        for (let y = 0; y < 25; y++) {
+    for (let x = 0; x < MINITEL_X; x++) {
+        for (let y = 0; y < MINITEL_Y; y++) {
             createChar.run(x, y, " ");
         }
     }
@@ -55,10 +58,10 @@ const updateDate = database.prepare("UPDATE student SET last=? WHERE id=?");
 const createStudent = database.prepare("INSERT INTO student(id) VALUES (?);");
 
 const checkVals = (x, y, val) => {
-    if (0 > x || 40 < x)
+    if (0 > x || MINITEL_X <= x)
         return false;
 
-    if (0 > y || 25 < y)
+    if (0 > y || MINITEL_Y <= y)
         return false;
 
     if (val.length != 1)
@@ -100,7 +103,7 @@ app.use(express.static('static'));
 app.use(express.json());
 
 app.get('/', (_, res) => {
-    res.render('index.html', { screen: screen, error: { message: "my super page" } });
+    res.render('index.html', { screen: screen, error: { message: "my super page" }, x: MINITEL_X, y: MINITEL_Y });
 });
 
 app.post('/', (req, res) => {

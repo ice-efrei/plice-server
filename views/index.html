@@ -11,8 +11,8 @@
     <div id="center">
         <div id="screen-container">
             <div id="screen">
-                <% for (let i = 0; i < 25; i++) { %>
-                    <% for (let j = 0; j < 40; j++) { %>
+                <% for (let i = 0; i < y; i++) { %>
+                    <% for (let j = 0; j < x; j++) { %>
                         <div class="case" x="<%= j %>" y="<%= i %>"><%= screen[i][j] %></div>
                     <% } %>
                 <% } %>
