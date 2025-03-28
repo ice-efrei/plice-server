@@ -37,7 +37,7 @@ body {
     width: 560px;
     display: grid;
     grid-template-columns: repeat(40, 14px);
-    grid-template-rows: repeat(25, 18px);
+    grid-template-rows: repeat(24, 18px);
     border: 1px solid #979797;
     position: relative;
     overflow: visible;

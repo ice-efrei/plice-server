@@ -7,7 +7,7 @@ const { createServer } = require('http');
 dotenv.config();
 
 const MINITEL_X = 40;
-const MINITEL_Y = 25;
+const MINITEL_Y = 24;
 
 const port = 8080;
 const possible_characters = "azertyuiopqsdfghjklmwxcvbnAZRTYUIOPQSDFGHJKLMWXCVBN1234567890,.';-:?#!\"$%&[]()<>@+=/\\{} ";
