@@ -162,7 +162,8 @@ wss.on('connection', socket => {
     //! pretty DDoS-able, include minimal check (IP, secret... ?)
     console.log("Someone connected to broadcast");
 
-    socket.on('message', _ => {
+    socket.on('message', e => {
+        console.log(e);
         socket.send("0" + getScreenString());
     });
 });
