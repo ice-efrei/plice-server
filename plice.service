@@ -1,5 +1,5 @@
 [Unit]
-Description=Plice\'s Server
+Description=Plice's Server
 
 [Service]
 Type=simple
@@ -10,7 +10,7 @@ User=nobody
 Group=nogroup
 
 # Environment variables:
-Environment=NODE_ENV=production
+EnvironmentFile=/home/pi/plice-server/.env
 
 # Allow many incoming connections
 LimitNOFILE=infinity

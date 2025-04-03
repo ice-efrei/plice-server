@@ -38,12 +38,10 @@ window.onload = _ => {
     console.log("%cSi tu as tout lu et que tu souhaite finalement être sympa et ajouter des features, je t'invite à rejoindre l'association %cICE %cici : https://discord.gg/uP7UffaqCp (c'est 5€ et on est marrants)", "font-weight: bolder;", "font-weight: bolder; color:  #3498db;", "font-weight: bolder;");
     
     document.body.onkeydown = e => {
-        if (highlightedElement != null) {
-            if (!possible_characters.includes(e.key))
-                return;
-
-            // e.preventDefault();
-            highlightedElement.innerText = e.key;
+        if (highlightedElement && possible_characters.includes(e.key)) {
+            const x = parseInt(highlightedElement.getAttribute("x"));
+            const y = parseInt(highlightedElement.getAttribute("y"));
+            postLetter(x, y, e.key);
         }
     }
 
@@ -53,30 +51,27 @@ window.onload = _ => {
 
     const ws = new WebSocket(`ws://${window.location.host}/`);
 
-    ws.onmessage = e => {
-        changeLetter(e.data);
-    }
+    ws.onmessage = (e) => {
+        const type = e.data[0];
+        if (type === "0") {
+            resetScreen(e.data.slice(1));
+        } else if (type === "1") {
+            const x = parseInt(e.data.slice(1, 3));
+            const y = parseInt(e.data.slice(3, 5));
+            const value = e.data[5];
+            updateCell(x, y, value);
+        }
+    };
 };
 
-const changeLetter = text => {
-    type = text.slice(0, 1);
-    
-    if (type == "0") {
-        resetScreen(text.slice(1));
-    } else if (type == "1") {
-        let x = parseInt(text.slice(1, 3));
-        let y = parseInt(text.slice(3, 5));
-        let val = text.slice(5, 6);
-    
-        const el = document.querySelector(`.case[x='${x}'][y='${y}']`);
-        el.innerText = val;
-    }
-    
-}
+const updateCell = (x, y, value) => {
+    const cell = document.querySelector(`.case[x="${x}"][y="${y}"]`);
+    if (cell) cell.innerText = value;
+};
 
-const resetScreen = s => {
-
-}
+const resetScreen = (data) => {
+    // Logic to reset the screen
+};
 
 const ok = () => {
     console.log("ok");
@@ -87,20 +82,13 @@ const err = error => {
 };
 
 const postLetter = (x, y, value) => {
-    
     fetch("/", {
         method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ x, y, value, student: "20231234" })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ x, y, value, student: "20231234" }),
     })
-    .then(res => res.json())
-    .then(result => {
-        if (result.status == "ok") {
-            ok();
-        } else {
-            err(result.error);
-        }
-    });
+        .then((res) => res.json())
+        .then((result) => {
+            if (result.status !== "ok") console.error(result.error);
+        });
 };
