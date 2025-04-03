@@ -1,7 +1,11 @@
-const sqlite = require('better-sqlite3'); // Use better-sqlite3 for simplicity and performance
-const path = require('path');
+import sqlite from 'better-sqlite3';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-const db = new sqlite(path.resolve(__dirname, 'plicedata'));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const db = new sqlite(resolve(__dirname, 'plicedata'));
 
 // Initialize the database
 const initDatabase = () => {
@@ -49,7 +53,7 @@ const logChange = (x, y, value, student) => db.prepare("INSERT INTO log(x, y, va
 const updateStudentTimestamp = (student) => db.prepare("UPDATE student SET last=CURRENT_TIMESTAMP WHERE id=?;").run(student);
 const createStudent = (student) => db.prepare("INSERT INTO student(id) VALUES (?);").run(student);
 
-module.exports = {
+export {
     initDatabase,
     getScreenCharacters,
     updateCharacter,

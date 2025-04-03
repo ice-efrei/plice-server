@@ -1,19 +1,18 @@
-const express = require('express');
-const { createServer } = require('http');
-const dotenv = require('dotenv');
-const path = require('path');
-const {
-    initDatabase,
-    getScreenCharacters,
-    updateCharacter,
-    logChange,
-    updateStudentTimestamp,
-    createStudent,
-} = require('./server/database');
-const setupWebSocket = require('./server/websocket');
+import express, { json, static as serveStatic } from 'express';
+import { createServer } from 'http';
+import { config } from 'dotenv';
+import { initDatabase, getScreenCharacters, updateCharacter, logChange, updateStudentTimestamp, createStudent } from './server/database.js';
+import setupWebSocket from './server/websocket.js';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import ejs from 'ejs';
+
+// Resolve __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load environment variables from .env file
-dotenv.config();
+config();
 
 // Validate required environment variables
 const requiredEnvVars = ['PRODUCTION_PORT', 'TESTING_PORT', 'NODE_ENV'];
@@ -49,9 +48,9 @@ loadScreen();
 const { broadcastChange } = setupWebSocket(server, () => screen.map((row) => row.join("")).join(""));
 
 // Middleware
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'static')));
-app.engine('.html', require('ejs').__express);
+app.use(json());
+app.use(serveStatic(join(__dirname, 'static')));
+app.engine('.html', ejs.__express);
 
 // Routes
 app.get('/', (_, res) => {

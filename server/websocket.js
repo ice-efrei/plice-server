@@ -1,4 +1,4 @@
-const { WebSocketServer } = require('ws');
+import { WebSocketServer } from 'ws';
 
 const setupWebSocket = (server, getScreenString, broadcastChange) => {
     const wss = new WebSocketServer({ server });
@@ -22,4 +22,4 @@ const setupWebSocket = (server, getScreenString, broadcastChange) => {
     };
 };
 
-module.exports = setupWebSocket;
+export default setupWebSocket;

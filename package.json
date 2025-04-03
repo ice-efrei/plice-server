@@ -1,4 +1,13 @@
 {
+  "name": "plice",
+  "version": "1.0.0",
+  "description": "A simple web server for Plice",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
   "dependencies": {
     "better-sqlite3": "^11.9.1",
     "bufferutil": "^4.0.9",
@@ -7,5 +16,8 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
