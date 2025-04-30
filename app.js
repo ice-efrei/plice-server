@@ -1,4 +1,5 @@
 import express, { json, static as serveStatic } from 'express';
+import ratelimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { config } from 'dotenv';
 import { initDatabase, getScreenCharacters, updateCharacter, logChange, updateStudentTimestamp, createStudent } from './server/database.js';
@@ -47,9 +48,19 @@ loadScreen();
 // WebSocket setup
 const { broadcastChange } = setupWebSocket(server, () => screen.map((row) => row.join("")).join(""));
 
+// Rate limiting middleware
+const limiter = ratelimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 50, // Limit each IP to 50 requests per windowMs
+    message: "Tu te calmes deux minutes ?",
+});
+
 // Middleware
+app.use(limiter);
 app.use(json());
-app.use(serveStatic(join(__dirname, 'static')));
+app.use(serveStatic(join(__dirname, 'static'), {
+    maxAge: 86400, // 1 day
+}));
 app.engine('.html', ejs.__express);
 
 // Routes
