@@ -5,23 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plice</title>
     <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
+    <link href='https://fonts.googleapis.com/css?family=Jersey 10' rel='stylesheet'>
 </head>
 <body>
+    <header id="header">
+        <h1 id ="title">r/plice</h1>
+    </header>
     <div id="center">
-        <div id="screen-container">
-            <div id="screen">
-                <% for (let i = 0; i < y; i++) { %>
-                    <% for (let j = 0; j < x; j++) { %>
-                        <div class="case" x="<%= j %>" y="<%= i %>"><%= screen[i][j] %></div>
-                    <% } %>
-                <% } %>
-            </div>
+        <div id="viewport">
+            <canvas id="gridCanvas"></canvas>
         </div>
         <div id="validate-container">
             <div id="validate">
                 <button id="validate-button">validate</button>
             </div>
+        </div>
         <div id="choices-container">
             <div id="choices"></div>
         </div>

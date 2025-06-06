@@ -1,34 +1,185 @@
 const possible_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890,.';-:?#!\"$%&[]()<>@+=/\\{} ";
 
-const fillChoices = () => {
-    const parent = document.getElementById("choices");
+const canvas = document.getElementById('gridCanvas');
+const ctx = canvas.getContext('2d');
 
-    possible_characters.split('').forEach(character => {
-        const child = document.createElement('div');
-        child.innerText = character;
-        parent.appendChild(child);
-    });
+const cellSize = 40;
+const totalCols = 40;
+const totalRows = 28;
 
-};
+let offsetX = 0;
+let offsetY = 0;
 
-let highlightedElement = null;
+// Stocke lettres dans chaque case : clé "col,row" → lettre
+const cellLetters = {};
+let selectedCell = null;
 
-const zoomIn = e => {
-    const removeHighlight = () => {
-        document.querySelectorAll("[highlighted]").forEach(
-            el => el.removeAttribute("highlighted")
-        );
+let isDragging = false;
+let startX = 0, startY = 0;
+
+const viewport = document.getElementById('viewport');
+
+function resizeCanvas() {
+    const rect = viewport.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    drawGrid();
+}
+
+function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const colsVisible = Math.ceil(canvas.width / cellSize);
+    const rowsVisible = Math.ceil(canvas.height / cellSize);
+
+    const startCol = Math.floor(offsetX / cellSize);
+    const startRow = Math.floor(offsetY / cellSize);
+
+    const offsetXMod = offsetX % cellSize;
+    const offsetYMod = offsetY % cellSize;
+
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Dessiner lettres dans la zone visible
+    ctx.fillStyle = '#ffffff'; // lettres en blanc pour contraster fond noir
+    ctx.font = `${cellSize * 0.7}px 'Ubuntu Mono', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (let row = startRow; row < startRow + rowsVisible; row++) {
+        if (row >= totalRows) continue;
+        for (let col = startCol; col < startCol + colsVisible; col++) {
+            if (col >= totalCols) continue;
+            const key = `${col},${row}`;
+            const letter = cellLetters[key];
+            if (letter) {
+                const x = (col - startCol) * cellSize + cellSize / 2 - offsetXMod;
+                const y = (row - startRow) * cellSize + cellSize / 2 - offsetYMod;
+                ctx.fillText(letter, x, y);
+            }
+        }
     }
 
-    if (e.target.getAttribute("highlighted") != null || !e.target.classList.contains("case")) {
-        removeHighlight();
-        highlightedElement = null;
+    ctx.strokeStyle = "#555"; // couleur grille
+    ctx.lineWidth = 1;
+
+    for (let col = 0; col <= colsVisible; col++) {
+        const x = col * cellSize - offsetXMod;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    for (let row = 0; row <= rowsVisible; row++) {
+        const y = row * cellSize - offsetYMod;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    // highlight case selectionnée
+    if (selectedCell) {
+        const { col, row } = selectedCell;
+        if (
+            col >= startCol && col < startCol + colsVisible &&
+            row >= startRow && row < startRow + rowsVisible
+        ) {
+            const x = (col - startCol) * cellSize - offsetXMod;
+            const y = (row - startRow) * cellSize - offsetYMod;
+            ctx.strokeStyle = '#87CEFA';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x + 1.5, y + 1.5, cellSize - 3, cellSize - 3);
+        }
+    }
+}
+
+function clampOffsets() {
+    const maxOffsetX = totalCols * cellSize - canvas.width;
+    const maxOffsetY = totalRows * cellSize - canvas.height;
+    offsetX = Math.max(0, Math.min(offsetX, maxOffsetX));
+    offsetY = Math.max(0, Math.min(offsetY, maxOffsetY));
+}
+
+// Drag souris
+viewport.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+});
+window.addEventListener("mouseup", () => {
+    isDragging = false;
+});
+window.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    startX = e.clientX;
+    startY = e.clientY;
+    offsetX -= dx;
+    offsetY -= dy;
+    clampOffsets();
+    drawGrid();
+});
+
+// Selection case en click
+canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const col = Math.floor((offsetX + mouseX) / cellSize);
+    const row = Math.floor((offsetY + mouseY) / cellSize);
+
+    if (col >= 0 && col < totalCols && row >= 0 && row < totalRows) {
+        // Si on clique sur la même case déjà sélectionnée, on la désélectionne
+        if (selectedCell && selectedCell.col === col && selectedCell.row === row) {
+            selectedCell = null;
+        } else {
+            selectedCell = { col, row };
+        }
     } else {
-        removeHighlight();
-        e.target.setAttribute("highlighted", "");
-        highlightedElement = e.target;
+        // Clique hors de la grille : désélectionner
+        selectedCell = null;
     }
+    drawGrid();
+});
+
+window.addEventListener('keydown', (e) => {
+    if (!selectedCell) return;
+
+    const char = e.key;
+    if (char.length === 1 && possible_characters.includes(char)) {
+        const key = `${selectedCell.col},${selectedCell.row}`;
+        cellLetters[key] = char;
+        drawGrid();
+    }
+});
+
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener('DOMContentLoaded', resizeCanvas);
+
+resizeCanvas();
+
+
+window.onload = () => {
+    fillChoices();
+
+    // sélection case
+    document.body.onclick = zoomIn;
+    window.addEventListener('keydown', (e) => {
+        if (highlightedElement && possible_characters.includes(e.key)) {
+            highlightedElement.innerText = e.key;
+
+            const x = parseInt(highlightedElement.getAttribute('x'));
+            const y = parseInt(highlightedElement.getAttribute('y'));
+
+            postLetter(x, y, e.key);
+        }
+    });
 };
+
 
 window.onload = _ => {
     console.log("%cPour tous les skids et les wannabe hackers venus dans la console", "color: red; font-size: 20px; font-weight: bolder;");
